@@ -112,4 +112,15 @@ $app->router->group([
     require __DIR__.'/../routes/web.php';
 });
 
+//Décommentez le middleware d'authentification
+$app->routeMiddleware([
+    'auth' => App\Http\Middleware\Authenticate::class,
+]);
+
+//décommenter cette ligne
+$app->register(App\Providers\AuthServiceProvider::class);
+
+// Ajouter ensuite cette ligne
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
+
 return $app;

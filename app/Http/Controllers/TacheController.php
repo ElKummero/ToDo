@@ -91,4 +91,12 @@ class TacheController extends Controller
         return Tache::findOrFail($id);
     }
 
+    public function __construct()
+    {
+        // Ce controlleur n'est accessible qu'avec un JWT valide
+        $this->middleware('auth');
+    }
+
+
+
 }

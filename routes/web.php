@@ -16,7 +16,7 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-// Création du groupr api : http://localhost:8000/api/
+// Création du groupe api : http://localhost:8000/api/
 $router->group(['prefix' => 'api'], function () use ($router) {
 
     // Toutes les tâches

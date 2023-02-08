@@ -1,15 +1,28 @@
 <?php
-use App\Models\Tache;
-use Laravel\Lumen\Testing\DatabaseTransactions;
-use \Tests\TestCase;
 
-class TacheTest extends TestCase {
+namespace Tests;
+
+use App\Models\Tache;
+//ajout de l'utilisateur
+use App\Models\Utilisateur;
+//ajout de la méthode de Hashage
+use Illuminate\Support\Facades\Hash;
+use Laravel\Lumen\Testing\DatabaseTransactions;
+
+class TacheTest extends \Tests\TestCase
+
+{
 
     //migre la bd lors de l'exécution des tests, puis annule la bd lorsque les tests sont terminés.
     use DatabaseTransactions;
 
     // Création de variables permettant d'effectuer les tests
     private $taches = "";
+    //ajout de l'utilisateur
+    private $utilisateur="";
+
+    //création du token pour chaque requête
+    private $token = "";
 
     /**
      * Affectation des variables avec la factory
@@ -21,6 +34,20 @@ class TacheTest extends TestCase {
     {
         parent::setUp();
         $this->taches = Tache::factory()->count(2)->create();
+        //création de l'utilisateur pour le test
+        $this->utilisateur = Utilisateur::create([
+            'nom' => 'Test',
+            'email' => 'test@gmail.com',
+            'password' => Hash::make('1234')
+        ]);
+        $this->utilisateur->password = '1234';
+        //authentification
+        $this->post('api/login', [
+            'email' =>  $this->utilisateur->email,
+            'password' =>  $this->utilisateur->password]);
+
+        //permet de s'authentifier et de sauvegarder le token
+        $this->token = ($this->response->json()['access_token']);
     }
     /**
      * Test de la Methode GET en récupérant toutes les tâches
@@ -29,7 +56,11 @@ class TacheTest extends TestCase {
      */
     public function testShowAllTasks()
     {
-        $this->get('api/taches');
+        $this->get('api/taches',[
+            'HTTP_AUTHORIZATION' => "{$this->token}",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json'
+        ]);
         $this->assertResponseOk(); //Affirme que la réponse a un code d'état 200:
     }
     /**
@@ -39,7 +70,11 @@ class TacheTest extends TestCase {
      */
     public function testShowOneTask()
     {
-        $this->get('api/taches/'.$this->taches[0]->id);
+        $this->get('api/taches/'.$this->taches[0]->id,[
+            'HTTP_AUTHORIZATION' => "{$this->token}",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json'
+        ]);
         $this->assertResponseOk();//Affirme que la réponse a un code d'état 200:
     }
 
@@ -47,14 +82,17 @@ class TacheTest extends TestCase {
     {
         $tache = Tache::factory()->make();
 
-
         $this->post('api/taches',
             [
                 'titre' => $tache->titre,
                 'contenu' => $tache->contenu,
                 'ordre' => $tache->ordre,
                 'complet' => $tache->complet,
-                'date_fin' => $tache->date_fin]);
+                'date_fin' => $tache->date_fin,
+                'HTTP_AUTHORIZATION' => "{$this->token}",
+                'CONTENT_TYPE' => 'application/ld+json',
+                'HTTP_ACCEPT' => 'application/ld+json'
+            ]);
 
         $this->assertResponseOk(); //Affirme que la réponse a un code d'état 201:
         $this->seeJsonContains(
@@ -83,22 +121,31 @@ class TacheTest extends TestCase {
             'contenu' => $tache->contenu." test test",
             'ordre' => $tache->ordre+20,
             'complet' => $tache->complet,
-            'date_fin' => $tache->date_fin
+            'date_fin' => $tache->date_fin,
         ];
 
-        $this->put('api/taches/'.$tache->id, $newtache);
+        $tableParam = array_merge($newtache,['HTTP_AUTHORIZATION' => "$this->token",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json']);
+
+        $this->put('api/taches/'.$tache->id, $tableParam);
 
         $this->assertResponseOk(); //Affirme que la réponse a un code d'état 200:
         $this->seeJsonContains($newtache);
         $this->seeInDatabase('taches', $newtache);
     }
 
+
     public function testcompleted()
     {
         $tache = $this->taches[0];
         $tache->complet = 0;
         $tache->update();
-        $this->put('api/taches/'.$this->taches[0]->id.'/complet');
+        $this->put('api/taches/'.$this->taches[0]->id.'/complet',[
+            'HTTP_AUTHORIZATION' => "{$this->token}",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json'
+        ]);
         $this->assertResponseOk(); //Affirme que la réponse a un code d'état 200:
         $this->seeJsonContains(
             ['complet' => 1])
@@ -112,7 +159,11 @@ class TacheTest extends TestCase {
 
     public function testdelete()
     {
-        $this->delete('api/taches/'.$this->taches[0]->id);
+        $this->delete('api/taches/'.$this->taches[0]->id,[
+            'HTTP_AUTHORIZATION' => "{$this->token}",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json'
+        ]);
 
         $this->assertResponseStatus(204);//Affirme que la réponse a un code d'état 204
         $this->notSeeInDatabase('taches', [
@@ -130,6 +181,10 @@ class TacheTest extends TestCase {
                 'ordre' => $tache->ordre,
                 'complet' => $tache->complet,
                 'date_fin' => $tache->date_fin
+            ],[
+                'HTTP_AUTHORIZATION' => "{$this->token}",
+                'CONTENT_TYPE' => 'application/ld+json',
+                'HTTP_ACCEPT' => 'application/ld+json'
             ]);
 
         $this->assertResponseStatus(422); //Affirme que la réponse a un code d'état 422:
@@ -148,6 +203,10 @@ class TacheTest extends TestCase {
                 'ordre' => $tache->contenu, //insère un string à la place d'un nombre
                 'complet' => $tache->complet,
                 'date_fin' => $tache->date_fin
+            ],[
+                'HTTP_AUTHORIZATION' => "{$this->token}",
+                'CONTENT_TYPE' => 'application/ld+json',
+                'HTTP_ACCEPT' => 'application/ld+json'
             ]);
 
         $this->assertResponseStatus(422); //Affirme que la réponse a un code d'état 422:
@@ -165,12 +224,15 @@ class TacheTest extends TestCase {
                 'ordre' => 5,
                 'complet' => false,
                 'date_fin' => '2022-03-20 16:30:00'
+                ,
+                'HTTP_AUTHORIZATION' => "{$this->token}",
+                'CONTENT_TYPE' => 'application/ld+json',
+                'HTTP_ACCEPT' => 'application/ld+json'
             ]);
 
         $this->assertResponseStatus(404); //Affirme que la réponse a un code d'état 404
         $this->seeJsonContains(['message' => 'Tache inexistante']);
 
     }
-
 
 }

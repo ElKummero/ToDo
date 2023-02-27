@@ -19,6 +19,16 @@ $router->get('/', function () use ($router) {
 // Création du groupe api : http://localhost:8000/api/
 $router->group(['prefix' => 'api'], function () use ($router) {
 
+    $router->post('register', ['uses' => 'AuthController@register']);
+
+    $router->post('login', ['uses' => 'AuthController@login']);
+
+    $router->post('me', ['uses' => 'AuthController@me']);
+
+    $router->post('refresh', ['uses' => 'AuthController@refresh']);
+
+    $router->post('logout', ['uses' => 'AuthController@logout']);
+
     // Toutes les tâches
     $router->get('taches',  ['uses' => 'TacheController@showAllTasks']);
 
@@ -36,4 +46,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
     // Fermeture ou Ouverture d'une tâche
     $router->put('taches/{id}/complet', ['uses' => 'TacheController@completed']);
+
+    $router->delete('taches/{id}', ['uses' => 'TacheController@delete']);
+
 });

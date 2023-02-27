@@ -9,8 +9,8 @@ use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
-class TacheTest extends \Tests\TestCase
 
+class TacheTest extends TestCase
 {
 
     //migre la bd lors de l'exécution des tests, puis annule la bd lorsque les tests sont terminés.
@@ -75,12 +75,13 @@ class TacheTest extends \Tests\TestCase
             'CONTENT_TYPE' => 'application/ld+json',
             'HTTP_ACCEPT' => 'application/ld+json'
         ]);
-        $this->assertResponseOk();//Affirme que la réponse a un code d'état 200:
+        $this->assertResponseOk(); //Affirme que la réponse a un code d'état 200:
     }
 
     public function testCreate()
     {
         $tache = Tache::factory()->make();
+
 
         $this->post('api/taches',
             [

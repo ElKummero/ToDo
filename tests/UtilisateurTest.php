@@ -6,7 +6,7 @@ use App\Models\Utilisateur;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
-class UtilisateurTest extends \Tests\TestCase
+class UtilisateurTest extends TestCase
 {
     //migre la bd lors de l'exécution des tests, puis annule la bd lorsque les tests sont terminés.
     use DatabaseTransactions;
@@ -35,10 +35,10 @@ class UtilisateurTest extends \Tests\TestCase
     public function testRegister()
     {
         $this->post('api/register', [
-            'nom' => 'Test Deux',
-            'email' => 'testdeux@gmail.com',
-            'password' => '1111',
-            'password_confirmation' => '1111']);
+            'nom' => 'Test Trois',
+            'email' => 'testtrois@gmail.com',
+            'password' => '1233',
+            'password_confirmation' => '1233']);
         $this->assertResponseStatus(200); //Affirme que la réponse a un code d'état 200
     }
 

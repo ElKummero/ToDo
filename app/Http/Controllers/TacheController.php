@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TacheController extends Controller
 {
@@ -98,7 +99,4 @@ class TacheController extends Controller
         // Ce controlleur n'est accessible qu'avec un JWT valide
         $this->middleware('auth');
     }
-
-
-
 }

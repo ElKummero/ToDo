@@ -115,8 +115,9 @@ $app->router->group([
 //Décommentez le middleware d'authentification
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
+    //ajout du middle MustBeOwnerOfTache
+    'mustBeOwnerOfTache' => App\Http\Middleware\MustBeOwnerOfTache::class,
 ]);
-
 //décommenter cette ligne
 $app->register(App\Providers\AuthServiceProvider::class);
 

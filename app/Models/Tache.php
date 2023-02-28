@@ -50,7 +50,8 @@ class Tache extends Model
         'contenu',
         'ordre',
         'complet',
-        'date_fin'
+        'date_fin',
+        'utilisateur_id'
     ];
 
     /**

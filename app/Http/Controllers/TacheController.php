@@ -43,7 +43,9 @@ class TacheController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, Tache::validateRules());
-        return Tache::create($request->all());
+        $data = $request->all();
+        $data['utilisateur_id'] = Auth::user()->id;
+        return Tache::create($data);
     }
 
     /**

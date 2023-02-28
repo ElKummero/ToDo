@@ -16,37 +16,40 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
 // Création du groupe api : http://localhost:8000/api/
 $router->group(['prefix' => 'api'], function () use ($router) {
 
-    $router->post('register', ['uses' => 'AuthController@register']);
+    //inscription
+    $router->post('register', 'AuthController@register');
+    // api/login
+    $router->post('login', 'AuthController@login');
+    // api/logout
+    $router->post('logout', 'AuthController@logout');
+    // api/refresh
+    $router->post('refresh', 'AuthController@refresh');
+    // api/me
+    $router->post('me', 'AuthController@me');
 
-    $router->post('login', ['uses' => 'AuthController@login']);
+    $router->group(['prefix' => 'taches'], function () use ($router) {
 
-    $router->post('me', ['uses' => 'AuthController@me']);
+        // Toutes les tâches
+        $router->get('', ['uses' => 'TacheController@showAllTasks']);
 
-    $router->post('refresh', ['uses' => 'AuthController@refresh']);
+        // Détail d'une tâche, doit être propriétaire
+        $router->get('/{id}', ['middleware' => 'mustBeOwnerOfTache', 'uses' => 'TacheController@showOneTask']);
 
-    $router->post('logout', ['uses' => 'AuthController@logout']);
+        // Ajout d'une tâche
+        $router->post('', ['uses' => 'TacheController@create']);
 
-    // Toutes les tâches
-    $router->get('taches',  ['uses' => 'TacheController@showAllTasks']);
+        // Modification d'une tâche, doit être propriétaire
+        $router->put('/{id}', ['middleware' => 'mustBeOwnerOfTache', 'uses' => 'TacheController@update']);
 
-    // Détail d'une tâche
-    $router->get('taches/{id}', ['uses' => 'TacheController@showOneTask']);
+        // Fermeture ou Ouverture d'une tâche, doit être proprétaire
+        $router->put('/{id}/complet', ['middleware' => 'mustBeOwnerOfTache', 'uses' => 'TacheController@completed']);
 
-    // Ajout d'une tâche
-    $router->post('taches', ['uses' => 'TacheController@create']);
+        // Suppression d'une tâche, doit être propriétaire
+        $router->delete('/{id}', ['middleware' => 'mustBeOwnerOfTache', 'uses' => 'TacheController@delete']);
 
-    // Suppression d'une tâche
-    $router->delete('taches/{id}', ['uses' => 'TacheController@delete']);
-
-    // Modification d'une tâche
-    $router->put('taches/{id}', ['uses' => 'TacheController@update']);
-
-    // Fermeture ou Ouverture d'une tâche
-    $router->put('taches/{id}/complet', ['uses' => 'TacheController@completed']);
-
-    $router->delete('taches/{id}', ['uses' => 'TacheController@delete']);
-
+    });
 });

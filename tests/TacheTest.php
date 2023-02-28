@@ -41,6 +41,13 @@ class TacheTest extends TestCase
             'password' => Hash::make('1234')
         ]);
         $this->utilisateur->password = '1234';
+
+        //ajout de l'utilisateur dans les tâches créées
+        Tache::findOrFail($this->taches[0]->id)->update( [
+            'utilisateur_id' =>  $this->utilisateur->id]);
+        Tache::findOrFail($this->taches[1]->id)->update([
+            'utilisateur_id' =>  $this->utilisateur->id]);
+
         //authentification
         $this->post('api/login', [
             'email' =>  $this->utilisateur->email,
@@ -96,6 +103,7 @@ class TacheTest extends TestCase
             ]);
 
         $this->assertResponseOk(); //Affirme que la réponse a un code d'état 201:
+
         $this->seeJsonContains(
             [
                 'titre' => $tache->titre,
@@ -234,6 +242,19 @@ class TacheTest extends TestCase
         $this->assertResponseStatus(404); //Affirme que la réponse a un code d'état 404
         $this->seeJsonContains(['message' => 'Tache inexistante']);
 
+    }
+
+    public function testNotOwnerShowOneTask()
+    {
+        $mytask=Tache::factory()->create();
+        $this->get('api/taches/'.$mytask->id,[
+            'HTTP_AUTHORIZATION' => "{$this->token}",
+            'CONTENT_TYPE' => 'application/ld+json',
+            'HTTP_ACCEPT' => 'application/ld+json'
+        ]);
+
+        $this->assertResponseStatus(401); //Affirme que la réponse a un code d'état 401
+        $this->seeJsonContains(['message' => "Vous n'êtes pas le propriétaire de la tâche"]);
     }
 
 }
